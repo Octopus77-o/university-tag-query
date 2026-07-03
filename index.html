@@ -1,0 +1,1600 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>高校标签查询</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #657180;
+      --line: #d8dde3;
+      --paper: #f7f5ef;
+      --white: #ffffff;
+      --teal: #0d7f83;
+      --teal-dark: #09585b;
+      --red: #bd3b35;
+      --gold: #b98614;
+      --blue: #2d5f8a;
+      --green: #327a4f;
+      --shadow: 0 20px 45px rgba(15, 27, 41, .14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: #eef1f2;
+      letter-spacing: 0;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 270px;
+      overflow: hidden;
+      background: #10202a;
+      color: var(--white);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(10, 22, 31, .92), rgba(10, 22, 31, .62) 38%, rgba(10, 22, 31, .16));
+      z-index: 1;
+    }
+
+    .hero img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 22px 26px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 46px;
+      min-width: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+      font-size: 16px;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.24);
+    }
+
+    .source-link {
+      color: #edf8f8;
+      text-decoration: none;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,.45);
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      max-width: min(720px, 100%);
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.04;
+      font-weight: 820;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .hero-copy {
+      max-width: 690px;
+      margin: 0;
+      color: #dce7e5;
+      font-size: 16px;
+      line-height: 1.75;
+      overflow-wrap: anywhere;
+    }
+
+    main {
+      max-width: 1180px;
+      width: 100%;
+      margin: -38px auto 0;
+      padding: 0 22px 44px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) 360px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .workspace > section,
+    .workspace > aside,
+    .panel {
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .search-panel {
+      padding: 18px;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 52px;
+      border: 1px solid #cbd3dc;
+      border-radius: 8px;
+      padding: 0 15px;
+      color: var(--ink);
+      background: #fbfcfc;
+      outline: 0;
+    }
+
+    .field:focus, textarea:focus, select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(13,127,131,.16);
+    }
+
+    .primary {
+      min-width: 116px;
+      min-height: 52px;
+      border-radius: 8px;
+      background: var(--teal);
+      color: var(--white);
+      font-weight: 720;
+      padding: 0 18px;
+    }
+
+    .ghost {
+      border: 1px solid #cbd3dc;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 8px;
+      min-height: 38px;
+      padding: 0 12px;
+      font-weight: 650;
+    }
+
+    .search-row .ghost {
+      min-height: 52px;
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .example {
+      background: #eef6f5;
+      color: var(--teal-dark);
+      border: 1px solid #cde3e0;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid #dde3e8;
+      border-radius: 8px;
+      background: #fbfcfc;
+    }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .school-name {
+      font-size: 24px;
+      font-weight: 820;
+      margin: 0 0 4px;
+    }
+
+    .school-sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .tag.c9 { background: var(--red); }
+    .tag.t985 { background: var(--blue); }
+    .tag.t211 { background: var(--teal); }
+    .tag.top23 { background: var(--gold); }
+    .tag.qs100 { background: var(--green); }
+    .tag.other, .tag.non92 { background: #77808b; }
+
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .fact {
+      border: 1px solid #e1e6eb;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 74px;
+      background: #fff;
+    }
+
+    .fact span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .fact strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 16px 0;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .section-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .side-panel {
+      padding-bottom: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px 16px;
+    }
+
+    .stat {
+      border: 1px solid #e1e6eb;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfc;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 16px 14px;
+    }
+
+    .filter {
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #cbd3dc;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 11px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .filter.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .note {
+      margin: 0 16px;
+      padding: 12px;
+      border-left: 4px solid var(--gold);
+      background: #fff8e6;
+      color: #5f4a17;
+      font-size: 13px;
+      line-height: 1.65;
+      border-radius: 6px;
+    }
+
+    .batch {
+      margin-top: 18px;
+      padding: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      border: 1px solid #cbd3dc;
+      border-radius: 8px;
+      padding: 12px;
+      outline: 0;
+      background: #fbfcfc;
+    }
+
+    .batch-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .batch-status {
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .batch-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .summary-item {
+      border: 1px solid #e1e6eb;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .summary-item strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .summary-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .preview-table {
+      margin-top: 12px;
+      border: 1px solid #e1e6eb;
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 260px;
+      background: #fff;
+    }
+
+    .preview-table table {
+      min-width: 680px;
+      box-shadow: none;
+    }
+
+    .table-panel {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .table-tools {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfc;
+    }
+
+    select {
+      min-height: 42px;
+      border: 1px solid #cbd3dc;
+      border-radius: 8px;
+      padding: 0 10px;
+      outline: 0;
+      background: #fff;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 460px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf0f3;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f3f6f7;
+      color: #44505c;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .mini-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .mini-tags .tag {
+      height: 22px;
+      padding: 0 7px;
+      font-size: 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 24px 16px;
+      text-align: center;
+    }
+
+    .sources {
+      margin-top: 18px;
+      color: #51606d;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .sources a {
+      color: var(--teal-dark);
+      font-weight: 700;
+    }
+
+    @media (max-width: 940px) {
+      main { margin-top: -30px; }
+      .workspace { grid-template-columns: 1fr; }
+      .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .hero { min-height: 260px; }
+      .hero::before {
+        background: linear-gradient(90deg, rgba(10, 22, 31, .94), rgba(10, 22, 31, .72));
+      }
+      .hero-inner { padding: 22px 14px 22px; }
+      .topbar { align-items: flex-start; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+      h1 { font-size: 32px; line-height: 1.08; margin-bottom: 12px; }
+      .hero-copy { font-size: 14px; line-height: 1.65; }
+      .source-link { white-space: normal; }
+      main { margin-top: -22px; padding: 0 12px 30px; }
+      .search-panel, .batch { padding: 12px; }
+      .search-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .search-row .field {
+        grid-column: 1 / -1;
+      }
+      .search-row .primary,
+      .search-row .ghost {
+        width: 100%;
+        min-width: 0;
+      }
+      .table-tools { grid-template-columns: 1fr; padding: 12px; }
+      .section-title { align-items: flex-start; flex-direction: column; }
+      .section-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+      }
+      .section-actions .ghost {
+        width: 100%;
+        min-width: 0;
+        padding-inline: 8px;
+      }
+      .batch-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .batch-actions .primary,
+      .batch-actions .ghost {
+        width: 100%;
+        min-width: 0;
+      }
+      .result-head { flex-direction: column; }
+      .tags { justify-content: flex-start; }
+      .facts, .batch-summary { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
+      .filters { padding-inline: 12px; }
+      .note { margin-inline: 12px; }
+      .table-wrap,
+      .preview-table {
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+      }
+      table { min-width: 600px; }
+      th, td { padding: 10px 12px; font-size: 13px; }
+    }
+
+    @media (max-width: 420px) {
+      .hero { min-height: 245px; }
+      .brand { font-size: 15px; }
+      .brand-mark { width: 30px; height: 30px; }
+      h1 { font-size: 29px; }
+      .section-actions {
+        grid-template-columns: 1fr;
+      }
+      .batch-actions {
+        grid-template-columns: 1fr;
+      }
+      .facts, .stats {
+        grid-template-columns: 1fr;
+      }
+      .result, .fact, .stat, .summary-item {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <img src="university-system-banner.png" alt="" />
+      <div class="hero-inner">
+        <div class="topbar">
+          <div class="brand"><span class="brand-mark">⌕</span><span>高校标签查询</span></div>
+          <a class="source-link" href="https://www.topuniversities.com/world-university-rankings" target="_blank" rel="noreferrer">QS World University Rankings 2027</a>
+        </div>
+        <h1>高校标签查询</h1>
+        <p class="hero-copy">输入学校名称，输出院校标签，支持中英文名和常见简称搜索，单个或多个高校搜索。</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="workspace">
+        <section>
+          <div class="panel search-panel">
+            <div class="search-row">
+              <input id="query" class="field" list="schoolList" placeholder="输入高校名称" autocomplete="off" />
+              <button id="searchBtn" class="primary">查询</button>
+              <button id="clearSearch" class="ghost">清空</button>
+            </div>
+            <datalist id="schoolList"></datalist>
+            <div class="examples" id="examples" aria-label="最近搜索记录"></div>
+            <div id="result" class="result"></div>
+          </div>
+
+          <div class="panel batch">
+            <div class="section-title" style="padding:0 0 12px">
+              <h2>批量处理</h2>
+              <div class="section-actions">
+                <button id="importExcel" class="ghost">导入</button>
+                <button id="exportExcel" class="ghost">导出</button>
+                <button id="excelTemplate" class="ghost">Excel模板</button>
+              </div>
+            </div>
+            <textarea id="batchInput" placeholder="输入多个高校名称，或直接粘贴 Excel 表的一列或多列"></textarea>
+            <input id="fileInput" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden />
+            <div id="batchStatus" class="batch-status">可导入 Excel 文件，或直接复制表格内容粘贴到上方。</div>
+            <div class="batch-actions">
+              <button id="batchBtn" class="primary">查询</button>
+              <button id="clearBatch" class="ghost">清空</button>
+            </div>
+          </div>
+
+          <div class="panel table-panel">
+            <div class="table-tools">
+              <input id="tableSearch" class="field" placeholder="在数据库中搜索学校、城市、英文名" />
+              <select id="tableFilter">
+                <option value="all">全部标签</option>
+                <option value="C9">C9</option>
+                <option value="985">985</option>
+                <option value="211">211</option>
+                <option value="top23">top23</option>
+                <option value="QS100">QS100</option>
+                <option value="非92">非92</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>学校</th>
+                    <th>标签</th>
+                    <th>城市</th>
+                    <th>地区</th>
+                    <th>QS 2027</th>
+                  </tr>
+                </thead>
+                <tbody id="databaseRows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <p class="sources">
+            数据说明：985/211/C9/top23 为本地规则库；QS100 数据提取自 QS 官方静态榜单数据文件 <a href="https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3990755.txt" target="_blank" rel="noreferrer">QS World University Rankings 2027</a>，已补全 QS 2027 Rank 1-100 条目。
+          </p>
+        </section>
+
+        <aside class="panel side-panel">
+          <div class="section-title">
+            <h2>数据库概览</h2>
+          </div>
+          <div class="stats" id="stats"></div>
+          <div class="filters" id="quickFilters"></div>
+          <p class="note">top23 口径采用一个可配置的国内强校集合，已在脚本顶部集中定义。若你们内部已有 HR/留学/招聘口径，只需替换 <strong>TOP23_NAMES</strong> 名单。</p>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const TOP23_NAMES = [
+      "北京大学","清华大学","复旦大学","上海交通大学","浙江大学","南京大学","中国科学技术大学","哈尔滨工业大学","西安交通大学",
+      "中国人民大学","北京航空航天大学","北京理工大学","同济大学","南开大学","天津大学","北京师范大学","武汉大学","华中科技大学",
+      "中山大学","东南大学","厦门大学","四川大学","山东大学","中国科学院大学"
+    ];
+
+    const QS_2027_PUBLIC = [
+      ["Massachusetts Institute of Technology (MIT)", "麻省理工学院", "Cambridge", "美国", 1, ["MIT","麻省理工"]],
+      ["Imperial College London", "帝国理工学院", "London", "英国", 2, ["Imperial","帝国理工"]],
+      ["University of Oxford", "牛津大学", "Oxford", "英国", 3, ["Oxford","牛津"]],
+      ["Harvard University", "哈佛大学", "Cambridge", "美国", 4, ["Harvard","哈佛"]],
+      ["University of Cambridge", "剑桥大学", "Cambridge", "英国", 5, ["Cambridge","剑桥"]],
+      ["Stanford University", "斯坦福大学", "Stanford", "美国", 6, ["Stanford","斯坦福"]],
+      ["ETH Zurich", "苏黎世联邦理工学院", "Zürich", "瑞士", 7, ["ETH","ETH Zürich","苏黎世联邦理工"]],
+      ["National University of Singapore (NUS)", "新加坡国立大学", "Singapore", "新加坡", 8, ["NUS","新国立"]],
+      ["UCL", "伦敦大学学院", "London", "英国", 9, ["University College London","伦敦大学学院"]],
+      ["California Institute of Technology (Caltech)", "加州理工学院", "Pasadena", "美国", 10, ["Caltech","加州理工"]],
+      ["University of Pennsylvania", "宾夕法尼亚大学", "Philadelphia", "美国", 11, ["UPenn","Penn","宾大"]],
+      ["University of California, Berkeley (UCB)", "加州大学伯克利分校", "Berkeley", "美国", 12, ["UC Berkeley","UCB","伯克利"]],
+      ["The University of Melbourne", "墨尔本大学", "Parkville", "澳大利亚", 13, ["University of Melbourne","Melbourne","墨大"]],
+      ["Peking University", "北京大学", "Beijing", "中国大陆", 14, ["北大","PKU"]],
+      ["Nanyang Technological University, Singapore (NTU Singapore)", "南洋理工大学", "Singapore", "新加坡", 15, ["NTU Singapore","NTU","南洋理工"]],
+      ["Cornell University", "康奈尔大学", "Ithaca", "美国", 16, ["Cornell","康奈尔"]],
+      ["The University of Hong Kong", "香港大学", "Hong Kong", "中国香港", 17, ["HKU","港大"]],
+      ["The University of Sydney", "悉尼大学", "Sydney", "澳大利亚", 18, ["USYD","悉大"]],
+      ["The University of New South Wales (UNSW Sydney)", "新南威尔士大学", "Sydney", "澳大利亚", 19, ["UNSW Sydney","UNSW","新南"]],
+      ["Tsinghua University", "清华大学", "Beijing", "中国大陆", 20, ["清华","THU"]],
+      ["University of Chicago", "芝加哥大学", "Chicago", "美国", 21, ["UChicago","芝大"]],
+      ["Princeton University", "普林斯顿大学", "Princeton", "美国", 22, ["Princeton","普林斯顿"]],
+      ["Yale University", "耶鲁大学", "New Haven", "美国", 23, ["Yale","耶鲁"]],
+      ["Université PSL", "巴黎文理研究大学", "Paris", "法国", 24, ["PSL University","PSL","巴黎文理"]],
+      ["University of Toronto", "多伦多大学", "Toronto", "加拿大", 25, ["UofT","多大"]],
+      ["EPFL – École polytechnique fédérale de Lausanne", "洛桑联邦理工学院", "Lausanne", "瑞士", 26, ["EPFL","洛桑联邦理工"]],
+      ["The University of Edinburgh", "爱丁堡大学", "Edinburgh", "英国", 27, ["University of Edinburgh","Edinburgh","爱大"]],
+      ["Technical University of Munich", "慕尼黑工业大学", "Munich", "德国", 28, ["TUM","慕尼黑工大"]],
+      ["McGill University", "麦吉尔大学", "Montreal", "加拿大", 29, ["McGill","麦吉尔"]],
+      ["Australian National University (ANU)", "澳大利亚国立大学", "Canberra", "澳大利亚", 30, ["ANU","澳国立"]],
+      ["Seoul National University", "首尔大学", "Seoul", "韩国", 31, ["SNU","首尔国立大学"]],
+      ["Johns Hopkins University", "约翰斯·霍普金斯大学", "Baltimore", "美国", 32, ["JHU","约翰霍普金斯"]],
+      ["The University of Tokyo", "东京大学", "Tokyo", "日本", 32, ["University of Tokyo","UTokyo","东大"]],
+      ["Columbia University", "哥伦比亚大学", "New York City", "美国", 34, ["Columbia","哥大"]],
+      ["The University of Manchester", "曼彻斯特大学", "Manchester", "英国", 34, ["University of Manchester","Manchester","曼大"]],
+      ["The Chinese University of Hong Kong (CUHK)", "香港中文大学", "Hong Kong", "中国香港", 36, ["CUHK","港中文"]],
+      ["Monash University", "蒙纳士大学", "Melbourne", "澳大利亚", 37, ["Monash","莫纳什大学"]],
+      ["University of British Columbia", "不列颠哥伦比亚大学", "Vancouver", "加拿大", 38, ["UBC","英属哥伦比亚大学"]],
+      ["Fudan University", "复旦大学", "Shanghai", "中国大陆", 39, ["复旦"]],
+      ["King's College London", "伦敦国王学院", "London", "英国", 40, ["KCL","King's","伦敦国王"]],
+      ["The University of Queensland", "昆士兰大学", "Brisbane City", "澳大利亚", 40, ["University of Queensland","UQ","昆大"]],
+      ["University of California, Los Angeles (UCLA)", "加州大学洛杉矶分校", "Los Angeles", "美国", 42, ["UCLA","加州大学洛杉矶"]],
+      ["New York University (NYU)", "纽约大学", "New York City", "美国", 43, ["NYU","纽大"]],
+      ["University of Michigan-Ann Arbor", "密歇根大学安娜堡分校", "Ann Arbor", "美国", 44, ["University of Michigan","UMich","密歇根大学"]],
+      ["Shanghai Jiao Tong University", "上海交通大学", "Shanghai", "中国大陆", 45, ["上交","上交大","SJTU"]],
+      ["Institut Polytechnique de Paris", "巴黎综合理工学院联盟", "Palaiseau Cedex", "法国", 46, ["巴黎理工学院","IPP"]],
+      ["The Hong Kong University of Science and Technology", "香港科技大学", "Hong Kong", "中国香港", 47, ["HKUST","港科大"]],
+      ["Zhejiang University", "浙江大学", "Hangzhou", "中国大陆", 47, ["浙大","ZJU"]],
+      ["Delft University of Technology", "代尔夫特理工大学", "Delft", "荷兰", 49, ["TU Delft","代尔夫特理工"]],
+      ["Kyoto University", "京都大学", "Kyoto", "日本", 50, ["Kyoto","京大"]],
+      ["Northwestern University", "西北大学（美国）", "Evanston", "美国", 50, ["Northwestern","美国西北大学"]],
+      ["The London School of Economics and Political Science (LSE)", "伦敦政治经济学院", "London", "英国", 50, ["LSE","伦敦政经"]],
+      ["KAIST - Korea Advanced Institute of Science & Technology", "韩国科学技术院", "Daejeon", "韩国", 53, ["KAIST","韩国科技院"]],
+      ["University of Bristol", "布里斯托大学", "Bristol", "英国", 54, ["Bristol","布大"]],
+      ["University of Amsterdam", "阿姆斯特丹大学", "Amsterdam", "荷兰", 55, ["UvA","阿大"]],
+      ["Yonsei University", "延世大学", "Seoul", "韩国", 56, ["Yonsei","延世"]],
+      ["The Hong Kong Polytechnic University", "香港理工大学", "Hong Kong SAR", "中国香港", 57, ["PolyU","港理工"]],
+      ["Carnegie Mellon University", "卡内基梅隆大学", "Pittsburgh", "美国", 58, ["CMU","卡梅"]],
+      ["Ludwig-Maximilians-Universität München", "慕尼黑大学", "Munich", "德国", 59, ["LMU Munich","LMU","慕尼黑大学"]],
+      ["Universiti Malaya (UM)", "马来亚大学", "Kuala Lumpur", "马来西亚", 60, ["University of Malaya","UM","马大"]],
+      ["Duke University", "杜克大学", "Durham", "美国", 61, ["Duke","杜克"]],
+      ["City University of Hong Kong", "香港城市大学", "Hong Kong", "中国香港", 62, ["CityUHK","CityU","港城大"]],
+      ["KU Leuven", "鲁汶大学", "Leuven", "比利时", 63, ["Katholieke Universiteit Leuven","鲁汶"]],
+      ["Sorbonne University", "索邦大学", "Paris", "法国", 63, ["Sorbonne","索邦"]],
+      ["The University of Auckland", "奥克兰大学", "Auckland", "新西兰", 65, ["University of Auckland","奥大"]],
+      ["University of Texas at Austin", "德克萨斯大学奥斯汀分校", "Austin", "美国", 66, ["UT Austin","Texas Austin","德州大学奥斯汀"]],
+      ["Korea University", "高丽大学", "Seoul", "韩国", 67, ["Korea University","高丽"]],
+      ["National Taiwan University (NTU)", "台湾大学", "Taipei", "中国台湾", 68, ["National Taiwan University","NTU Taiwan","台大"]],
+      ["The University of Warwick", "华威大学", "Coventry", "英国", 69, ["University of Warwick","Warwick","华威"]],
+      ["University of Illinois at Urbana-Champaign", "伊利诺伊大学厄巴纳-香槟分校", "Champaign", "美国", 69, ["UIUC","伊利诺伊香槟"]],
+      ["Universidad de Buenos Aires (UBA)", "布宜诺斯艾利斯大学", "Buenos Aires", "阿根廷", 71, ["UBA","布大"]],
+      ["University of California, San Diego (UCSD)", "加州大学圣迭戈分校", "San Diego", "美国", 72, ["UCSD","加州大学圣地亚哥"]],
+      ["Université Paris-Saclay", "巴黎萨克雷大学", "Gif-sur-Yvette", "法国", 73, ["Paris-Saclay","巴黎萨克雷"]],
+      ["KTH Royal Institute of Technology", "瑞典皇家理工学院", "Stockholm", "瑞典", 74, ["KTH","皇家理工"]],
+      ["Lund University", "隆德大学", "Lund", "瑞典", 75, ["Lund","隆德"]],
+      ["University of Washington", "华盛顿大学", "Seattle", "美国", 76, ["UW","UWashington","华大"]],
+      ["The University of Western Australia", "西澳大学", "Perth", "澳大利亚", 77, ["University of Western Australia","UWA","西澳"]],
+      ["University of Glasgow", "格拉斯哥大学", "Glasgow", "英国", 78, ["Glasgow","格大"]],
+      ["Brown University", "布朗大学", "Providence", "美国", 79, ["Brown","布朗"]],
+      ["University of Birmingham", "伯明翰大学", "Birmingham", "英国", 80, ["Birmingham","伯大"]],
+      ["University of Southampton", "南安普顿大学", "Southampton", "英国", 80, ["Southampton","南安"]],
+      ["The University of Adelaide", "阿德莱德大学", "Adelaide", "澳大利亚", 82, ["University of Adelaide","Adelaide","阿大莱德"]],
+      ["University of Leeds", "利兹大学", "Leeds", "英国", 82, ["Leeds","利兹"]],
+      ["Universität Heidelberg", "海德堡大学", "Heidelberg", "德国", 84, ["Heidelberg University","海德堡"]],
+      ["Tokyo Institute of Technology (Tokyo Tech)", "东京工业大学", "Tokyo", "日本", 84, ["Tokyo Tech","东京工大"]],
+      ["Osaka University", "大阪大学", "Osaka City", "日本", 86, ["Osaka","阪大"]],
+      ["Trinity College Dublin, The University of Dublin", "都柏林圣三一大学", "Dublin", "爱尔兰", 87, ["Trinity College Dublin","TCD","圣三一"]],
+      ["University of Technology Sydney", "悉尼科技大学", "Haymarket", "澳大利亚", 88, ["UTS","悉尼科大"]],
+      ["Durham University", "杜伦大学", "Durham", "英国", 89, ["Durham","杜伦"]],
+      ["Pennsylvania State University", "宾夕法尼亚州立大学", "University Park", "美国", 89, ["Penn State","宾州州立"]],
+      ["Purdue University", "普渡大学", "West Lafayette", "美国", 89, ["Purdue","普渡"]],
+      ["Universidade de São Paulo", "圣保罗大学", "São Paulo", "巴西", 92, ["University of São Paulo","USP","圣保罗"]],
+      ["Pontificia Universidad Católica de Chile (UC)", "智利天主教大学", "Santiago", "智利", 93, ["Pontifical Catholic University of Chile","PUC Chile","智利天主教"]],
+      ["Lomonosov Moscow State University", "莫斯科国立大学", "Moscow", "俄罗斯", 94, ["Moscow State University","MSU","莫大"]],
+      ["Universidad Nacional Autónoma de México  (UNAM)", "墨西哥国立自治大学", "Mexico City", "墨西哥", 94, ["UNAM","墨西哥国立自治"]],
+      ["University of Alberta", "阿尔伯塔大学", "Edmonton", "加拿大", 96, ["Alberta","阿大"]],
+      ["Freie Universitaet Berlin", "柏林自由大学", "Berlin", "德国", 97, ["Free University of Berlin","FU Berlin","柏林自由"]],
+      ["Pohang University of Science And Technology (POSTECH)", "浦项科技大学", "Pohang", "韩国", 98, ["POSTECH","浦项工大"]],
+      ["RWTH Aachen University", "亚琛工业大学", "Aachen", "德国", 99, ["RWTH Aachen","亚琛工大"]],
+      ["University of Copenhagen", "哥本哈根大学", "Copenhagen", "丹麦", 100, ["Copenhagen","哥大本哈根"]]
+    ];
+
+    const DOMESTIC = [
+      ["清华大学","Tsinghua University","北京","北京",["985","211","C9"],20,["清华","thu"]],
+      ["北京大学","Peking University","北京","北京",["985","211","C9"],14,["北大","pku"]],
+      ["复旦大学","Fudan University","上海","上海",["985","211","C9"],39,["复旦"]],
+      ["上海交通大学","Shanghai Jiao Tong University","上海","上海",["985","211","C9"],45,["上交","上交大","sjtu"]],
+      ["浙江大学","Zhejiang University","杭州","浙江",["985","211","C9"],47,["浙大","zju"]],
+      ["西湖大学","Westlake University","杭州","浙江",[],null,["westlake"]],
+      ["南京大学","Nanjing University","南京","江苏",["985","211","C9"],null,["南大","nju"]],
+      ["中国科学技术大学","University of Science and Technology of China","合肥","安徽",["985","211","C9"],null,["中科大","ustc"]],
+      ["哈尔滨工业大学","Harbin Institute of Technology","哈尔滨","黑龙江",["985","211","C9"],null,["哈工大","hit"]],
+      ["西安交通大学","Xi'an Jiaotong University","西安","陕西",["985","211","C9"],null,["西交大","xjtu"]],
+      ["中国人民大学","Renmin University of China","北京","北京",["985","211"],null,["人大","ruc"]],
+      ["北京航空航天大学","Beihang University","北京","北京",["985","211"],null,["北航","buaa"]],
+      ["北京理工大学","Beijing Institute of Technology","北京","北京",["985","211"],null,["北理工","bit"]],
+      ["中国农业大学","China Agricultural University","北京","北京",["985","211"],null,["中农大","cau"]],
+      ["北京师范大学","Beijing Normal University","北京","北京",["985","211"],null,["北师大","bnu"]],
+      ["中国科学院大学","University of Chinese Academy of Sciences","北京","北京",[],null,["国科大","ucas"]],
+      ["中央民族大学","Minzu University of China","北京","北京",["985","211"],null,["中央民大"]],
+      ["南开大学","Nankai University","天津","天津",["985","211"],null,["南开"]],
+      ["天津大学","Tianjin University","天津","天津",["985","211"],null,["天大","tju"]],
+      ["大连理工大学","Dalian University of Technology","大连","辽宁",["985","211"],null,["大工","dut"]],
+      ["东北大学","Northeastern University China","沈阳","辽宁",["985","211"],null,["东大"]],
+      ["吉林大学","Jilin University","长春","吉林",["985","211"],null,["吉大","jlu"]],
+      ["同济大学","Tongji University","上海","上海",["985","211"],null,["同济"]],
+      ["华东师范大学","East China Normal University","上海","上海",["985","211"],null,["华师大","ecnu"]],
+      ["东南大学","Southeast University","南京","江苏",["985","211"],null,["东大","seu"]],
+      ["厦门大学","Xiamen University","厦门","福建",["985","211"],null,["厦大","xmu"]],
+      ["山东大学","Shandong University","济南","山东",["985","211"],null,["山大","sdu"]],
+      ["中国海洋大学","Ocean University of China","青岛","山东",["985","211"],null,["海大","ouc"]],
+      ["武汉大学","Wuhan University","武汉","湖北",["985","211"],null,["武大","whu"]],
+      ["华中科技大学","Huazhong University of Science and Technology","武汉","湖北",["985","211"],null,["华科","hust"]],
+      ["湖南大学","Hunan University","长沙","湖南",["985","211"],null,["湖大","hnu"]],
+      ["中南大学","Central South University","长沙","湖南",["985","211"],null,["中南","csu"]],
+      ["中山大学","Sun Yat-sen University","广州","广东",["985","211"],null,["中大","sysu"]],
+      ["华南理工大学","South China University of Technology","广州","广东",["985","211"],null,["华工","scut"]],
+      ["重庆大学","Chongqing University","重庆","重庆",["985","211"],null,["重大","cqu"]],
+      ["四川大学","Sichuan University","成都","四川",["985","211"],null,["川大","scu"]],
+      ["电子科技大学","University of Electronic Science and Technology of China","成都","四川",["985","211"],null,["电子科大","uestc"]],
+      ["西北工业大学","Northwestern Polytechnical University","西安","陕西",["985","211"],null,["西工大","npu"]],
+      ["兰州大学","Lanzhou University","兰州","甘肃",["985","211"],null,["兰大","lzu"]],
+      ["国防科技大学","National University of Defense Technology","长沙","湖南",["985","211"],null,["国防科大","nudt"]],
+      ["中央财经大学","Central University of Finance and Economics","北京","北京",["211"],null,["央财","cufe"]],
+      ["对外经济贸易大学","University of International Business and Economics","北京","北京",["211"],null,["贸大","uibe"]],
+      ["北京交通大学","Beijing Jiaotong University","北京","北京",["211"],null,["北交大","bjtu"]],
+      ["北京工业大学","Beijing University of Technology","北京","北京",["211"],null,["北工大"]],
+      ["北京科技大学","University of Science and Technology Beijing","北京","北京",["211"],null,["北科大","ustb"]],
+      ["北京化工大学","Beijing University of Chemical Technology","北京","北京",["211"],null,["北化"]],
+      ["北京邮电大学","Beijing University of Posts and Telecommunications","北京","北京",["211"],null,["北邮","bupt"]],
+      ["北京林业大学","Beijing Forestry University","北京","北京",["211"],null,["北林"]],
+      ["北京中医药大学","Beijing University of Chinese Medicine","北京","北京",["211"],null,["北中医"]],
+      ["北京外国语大学","Beijing Foreign Studies University","北京","北京",["211"],null,["北外","bfsu"]],
+      ["中国传媒大学","Communication University of China","北京","北京",["211"],null,["中传","cuc"]],
+      ["北京体育大学","Beijing Sport University","北京","北京",["211"],null,["北体"]],
+      ["中央音乐学院","Central Conservatory of Music","北京","北京",["211"],null,["央音"]],
+      ["中国政法大学","China University of Political Science and Law","北京","北京",["211"],null,["法大","cupl"]],
+      ["华北电力大学","North China Electric Power University","北京","北京",["211"],null,["华电","ncepu"]],
+      ["中国矿业大学（北京）","China University of Mining and Technology Beijing","北京","北京",["211"],null,["矿大北京"]],
+      ["中国石油大学（北京）","China University of Petroleum Beijing","北京","北京",["211"],null,["中石大北京"]],
+      ["中国地质大学（北京）","China University of Geosciences Beijing","北京","北京",["211"],null,["地大北京"]],
+      ["天津医科大学","Tianjin Medical University","天津","天津",["211"],null,["天医"]],
+      ["河北工业大学","Hebei University of Technology","天津","河北",["211"],null,["河工大"]],
+      ["太原理工大学","Taiyuan University of Technology","太原","山西",["211"],null,["太理"]],
+      ["山西大学","Shanxi University","太原","山西",[],null,["sxu"]],
+      ["内蒙古大学","Inner Mongolia University","呼和浩特","内蒙古",["211"],null,["内大"]],
+      ["辽宁大学","Liaoning University","沈阳","辽宁",["211"],null,["辽大"]],
+      ["大连海事大学","Dalian Maritime University","大连","辽宁",["211"],null,["海事"]],
+      ["延边大学","Yanbian University","延吉","吉林",["211"],null,["延大"]],
+      ["东北师范大学","Northeast Normal University","长春","吉林",["211"],null,["东北师大"]],
+      ["哈尔滨工程大学","Harbin Engineering University","哈尔滨","黑龙江",["211"],null,["哈工程","heu"]],
+      ["东北农业大学","Northeast Agricultural University","哈尔滨","黑龙江",["211"],null,["东北农大"]],
+      ["东北林业大学","Northeast Forestry University","哈尔滨","黑龙江",["211"],null,["东北林大"]],
+      ["华东理工大学","East China University of Science and Technology","上海","上海",["211"],null,["华理","ecust"]],
+      ["东华大学","Donghua University","上海","上海",["211"],null,["东华"]],
+      ["上海外国语大学","Shanghai International Studies University","上海","上海",["211"],null,["上外","sisu"]],
+      ["上海财经大学","Shanghai University of Finance and Economics","上海","上海",["211"],null,["上财","sufe"]],
+      ["上海大学","Shanghai University","上海","上海",["211"],null,["上大","shu"]],
+      ["海军军医大学","Naval Medical University","上海","上海",["211"],null,["第二军医大学"]],
+      ["苏州大学","Soochow University","苏州","江苏",["211"],null,["苏大"]],
+      ["南京航空航天大学","Nanjing University of Aeronautics and Astronautics","南京","江苏",["211"],null,["南航","nuaa"]],
+      ["南京理工大学","Nanjing University of Science and Technology","南京","江苏",["211"],null,["南理工","njust"]],
+      ["中国矿业大学","China University of Mining and Technology","徐州","江苏",["211"],null,["矿大","cumt"]],
+      ["河海大学","Hohai University","南京","江苏",["211"],null,["河海"]],
+      ["江南大学","Jiangnan University","无锡","江苏",["211"],null,["江南"]],
+      ["南京农业大学","Nanjing Agricultural University","南京","江苏",["211"],null,["南农"]],
+      ["中国药科大学","China Pharmaceutical University","南京","江苏",["211"],null,["药大","cpu"]],
+      ["南京师范大学","Nanjing Normal University","南京","江苏",["211"],null,["南师大"]],
+      ["安徽大学","Anhui University","合肥","安徽",["211"],null,["安大"]],
+      ["合肥工业大学","Hefei University of Technology","合肥","安徽",["211"],null,["合工大"]],
+      ["福州大学","Fuzhou University","福州","福建",["211"],null,["福大"]],
+      ["南昌大学","Nanchang University","南昌","江西",["211"],null,["南大"]],
+      ["中国石油大学（华东）","China University of Petroleum East China","青岛","山东",["211"],null,["中石大华东"]],
+      ["青岛大学","Qingdao University","青岛","山东",[],null,["qdu"]],
+      ["郑州大学","Zhengzhou University","郑州","河南",["211"],null,["郑大"]],
+      ["武汉理工大学","Wuhan University of Technology","武汉","湖北",["211"],null,["武理工"]],
+      ["华中师范大学","Central China Normal University","武汉","湖北",["211"],null,["华师","ccnu"]],
+      ["华中农业大学","Huazhong Agricultural University","武汉","湖北",["211"],null,["华农"]],
+      ["中南财经政法大学","Zhongnan University of Economics and Law","武汉","湖北",["211"],null,["中南财大","中南财经"]],
+      ["中国地质大学（武汉）","China University of Geosciences Wuhan","武汉","湖北",["211"],null,["地大武汉"]],
+      ["湖南师范大学","Hunan Normal University","长沙","湖南",["211"],null,["湖南师大"]],
+      ["暨南大学","Jinan University","广州","广东",["211"],null,["暨大"]],
+      ["华南师范大学","South China Normal University","广州","广东",["211"],null,["华南师大"]],
+      ["广西大学","Guangxi University","南宁","广西",["211"],null,["西大"]],
+      ["海南大学","Hainan University","海口","海南",["211"],null,["海大"]],
+      ["西南大学","Southwest University","重庆","重庆",["211"],null,["西大"]],
+      ["西南交通大学","Southwest Jiaotong University","成都","四川",["211"],null,["西南交大"]],
+      ["四川农业大学","Sichuan Agricultural University","雅安","四川",["211"],null,["川农"]],
+      ["西南财经大学","Southwestern University of Finance and Economics","成都","四川",["211"],null,["西财","swufe"]],
+      ["贵州大学","Guizhou University","贵阳","贵州",["211"],null,["贵大"]],
+      ["云南大学","Yunnan University","昆明","云南",["211"],null,["云大"]],
+      ["西藏大学","Tibet University","拉萨","西藏",["211"],null,["藏大"]],
+      ["西北大学","Northwest University China","西安","陕西",["211"],null,["西大"]],
+      ["西安电子科技大学","Xidian University","西安","陕西",["211"],null,["西电","xidian"]],
+      ["长安大学","Chang'an University","西安","陕西",["211"],null,["长大"]],
+      ["陕西师范大学","Shaanxi Normal University","西安","陕西",["211"],null,["陕师大"]],
+      ["空军军医大学","Air Force Medical University","西安","陕西",["211"],null,["第四军医大学"]],
+      ["青海大学","Qinghai University","西宁","青海",["211"],null,["青大"]],
+      ["宁夏大学","Ningxia University","银川","宁夏",["211"],null,["宁大"]],
+      ["新疆大学","Xinjiang University","乌鲁木齐","新疆",["211"],null,["新大"]],
+      ["石河子大学","Shihezi University","石河子","新疆",["211"],null,["石大"]]
+    ];
+
+    const normalize = (value) => String(value || "")
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[()（）·.,'’\-–—\s]/g, "")
+      .replace(/universityof/g, "university")
+      .replace(/the/g, "");
+
+    const labelClass = (tag) => tag === "985" ? "t985" : tag === "211" ? "t211" : tag === "非92" ? "non92" : tag.toLowerCase();
+
+    function makeSchool(row, source) {
+      const [name, en, city, regionOrProvince, tags, qsRank, aliases = []] = row;
+      const region = source === "domestic" ? "中国大陆" : regionOrProvince;
+      const province = source === "domestic" ? regionOrProvince : "";
+      const allTags = new Set(tags);
+      if (TOP23_NAMES.includes(name)) allTags.add("top23");
+      if (qsRank && qsRank <= 100) allTags.add("QS100");
+      if (!allTags.has("985") && !allTags.has("211") && !allTags.has("QS100")) allTags.add("非92");
+      const item = { name, en, city, province, region, country: region, qsRank, tags: [...allTags], aliases, source };
+      item.keys = [name, en, ...aliases].filter(Boolean).map(normalize);
+      item.searchKeys = [name, en, city, province, region, ...aliases].filter(Boolean).map(normalize);
+      return item;
+    }
+
+    const domesticItems = DOMESTIC.map(row => makeSchool(row, "domestic"));
+    const domesticKeys = new Set(domesticItems.flatMap(item => [normalize(item.name), normalize(item.en), ...item.aliases.map(normalize)]));
+    const qsItems = QS_2027_PUBLIC
+      .filter(row => !domesticKeys.has(normalize(row[0])) && !domesticKeys.has(normalize(row[1])))
+      .map(row => makeSchool([row[1], row[0], row[2], row[3], [], row[4], row[5]], "qs"));
+    const EXTRA_UNIVERSITIES = [
+      ["杜兰大学", "Tulane University", "New Orleans", "美国", [], null, ["tulane"]]
+    ];
+    const extraItems = EXTRA_UNIVERSITIES.map(row => makeSchool(row, "qs"));
+    const DATA = [...domesticItems, ...qsItems, ...extraItems].sort((a, b) => {
+      const aRank = a.qsRank || 9999;
+      const bRank = b.qsRank || 9999;
+      if (aRank !== bRank) return aRank - bRank;
+      return a.name.localeCompare(b.name, "zh-Hans-CN");
+    });
+
+    const $ = (id) => document.getElementById(id);
+    let activeQuickFilter = "all";
+    let batchRows = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function tagsHtml(tags, mini = false) {
+      return `<div class="${mini ? "mini-tags" : "tags"}">${tags.map(tag => `<span class="tag ${labelClass(tag)}">${escapeHtml(tag)}</span>`).join("")}</div>`;
+    }
+
+    function findSchool(input) {
+      const raw = String(input || "").trim();
+      if (!raw) return null;
+      const key = normalize(raw);
+      const exact = DATA.find(item => item.keys.includes(key));
+      if (exact) return { ...exact, matched: raw };
+      return {
+        name: raw,
+        en: "",
+        city: "未收录",
+        province: "",
+        region: "未收录",
+        qsRank: null,
+        tags: ["非92"],
+        aliases: [],
+        source: "unknown",
+        matched: raw,
+        unknown: true
+      };
+    }
+
+    function renderResult(item) {
+      if (!item) {
+        $("result").innerHTML = `<div class="empty">查询结果显示区域</div>`;
+        return;
+      }
+      const qsText = item.qsRank ? `#${item.qsRank}` : "未进入已内置 QS100 数据";
+      const matchNote = item.fuzzy ? "模糊匹配" : item.unknown ? "未命中数据库" : "精确匹配";
+      $("result").innerHTML = `
+        <div class="result-head">
+          <div>
+            <h2 class="school-name">${escapeHtml(item.name)}</h2>
+            <div class="school-sub">${escapeHtml(item.en || "暂无英文名")} · ${matchNote}${item.matched ? `：${escapeHtml(item.matched)}` : ""}</div>
+          </div>
+          ${tagsHtml(item.tags)}
+        </div>
+        <div class="facts">
+          <div class="fact"><span>所在城市</span><strong>${escapeHtml(item.city || "未收录")}</strong></div>
+          <div class="fact"><span>省份 / 州</span><strong>${escapeHtml(item.province || "-")}</strong></div>
+          <div class="fact"><span>地区</span><strong>${escapeHtml(item.region || "-")}</strong></div>
+          <div class="fact"><span>QS 2027</span><strong>${escapeHtml(qsText)}</strong></div>
+        </div>
+      `;
+    }
+
+    function parseDelimited(text, delimiter) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      const value = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      for (let i = 0; i < value.length; i++) {
+        const ch = value[i];
+        const next = value[i + 1];
+        if (ch === '"') {
+          if (quoted && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (ch === delimiter && !quoted) {
+          row.push(cell.trim());
+          cell = "";
+        } else if (ch === "\n" && !quoted) {
+          row.push(cell.trim());
+          rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += ch;
+        }
+      }
+      row.push(cell.trim());
+      rows.push(row);
+      return rows.map(r => r.map(c => c.replace(/^\ufeff/, "").trim())).filter(r => r.some(Boolean));
+    }
+
+    function detectDelimiter(text) {
+      const sample = String(text || "").split(/\r?\n/).slice(0, 8).join("\n");
+      const counts = [
+        ["\t", (sample.match(/\t/g) || []).length],
+        [",", (sample.match(/,/g) || []).length],
+        [";", (sample.match(/;/g) || []).length]
+      ];
+      counts.sort((a, b) => b[1] - a[1]);
+      return counts[0][1] > 0 ? counts[0][0] : "\n";
+    }
+
+    function isHeaderCell(value) {
+      const key = normalize(value);
+      const chineseHeaders = ["学校", "高校", "院校", "学校名称", "高校名称", "院校名称", "毕业院校", "本科院校", "硕士院校"];
+      const englishHeaders = ["school", "university", "college", "institution", "name", "schoolname", "universityname"];
+      return chineseHeaders.some(label => key.includes(normalize(label))) || englishHeaders.includes(key);
+    }
+
+    function findSchoolColumn(rows) {
+      let headerRow = -1;
+      let headerCol = -1;
+      rows.slice(0, 5).some((row, rowIndex) => row.some((cell, colIndex) => {
+        if (isHeaderCell(cell)) {
+          headerRow = rowIndex;
+          headerCol = colIndex;
+          return true;
+        }
+        return false;
+      }));
+      if (headerCol >= 0) return { col: headerCol, start: headerRow + 1 };
+
+      const maxCols = Math.max(...rows.map(row => row.length));
+      let best = { col: 0, score: -1 };
+      for (let col = 0; col < maxCols; col++) {
+        const score = rows.reduce((sum, row) => {
+          const cell = row[col] || "";
+          if (!cell.trim()) return sum;
+          const match = findSchool(cell);
+          const numberLike = /^[\d.\-_/]+$/.test(cell.trim());
+          return sum + (match && !match.unknown ? 4 : 1) - (numberLike ? 2 : 0);
+        }, 0);
+        if (score > best.score) best = { col, score };
+      }
+      return { col: best.col, start: 0 };
+    }
+
+    function extractNamesFromRows(rows) {
+      if (!rows.length) return [];
+      if (rows.length === 1 && rows[0].length > 1) return rows[0].map(x => String(x || "").trim()).filter(Boolean);
+      const { col, start } = findSchoolColumn(rows);
+      return rows.slice(start).map(row => row[col] || "").map(x => String(x).trim()).filter(Boolean).filter(name => !isHeaderCell(name));
+    }
+
+    function extractNamesFromText(text) {
+      const raw = String(text || "").trim();
+      if (!raw) return [];
+      const singleLine = !/[\n\r]/.test(raw);
+      const listParts = raw.split(/\n|,|，|;|；|、/).map(x => x.trim()).filter(Boolean);
+      if (singleLine && listParts.length > 1) return listParts;
+      if (!raw.includes("\t") && !raw.includes(",") && !raw.includes(";") && listParts.length > 1) return listParts;
+
+      const delimiter = detectDelimiter(raw);
+      if (delimiter === "\n") return listParts;
+      const rows = parseDelimited(raw, delimiter);
+      if (!rows.length) return [];
+      return extractNamesFromRows(rows);
+    }
+
+    function batchSummaryHtml(rows) {
+      const known = rows.filter(item => !item.unknown).length;
+      const unknown = rows.length - known;
+      const qs = rows.filter(item => item.tags.includes("QS100")).length;
+      const keyTags = rows.filter(item => item.tags.some(tag => ["985", "211", "C9", "top23"].includes(tag))).length;
+      return `
+        <div class="batch-summary">
+          <div class="summary-item"><strong>${rows.length}</strong><span>输入学校</span></div>
+          <div class="summary-item"><strong>${known}</strong><span>命中数据库</span></div>
+          <div class="summary-item"><strong>${keyTags}</strong><span>国内重点标签</span></div>
+          <div class="summary-item"><strong>${qs}</strong><span>QS100</span></div>
+        </div>
+        ${unknown ? `<div class="batch-status">有 ${unknown} 条未命中数据库，已标记为“非92”。</div>` : ""}
+      `;
+    }
+
+    function batchRowsHtml(rows) {
+      return rows.map(item => `
+        <tr>
+          <td><strong>${escapeHtml(item.matched)}</strong><br><span class="school-sub">匹配为：${escapeHtml(item.name)}</span></td>
+          <td>${tagsHtml(item.tags, true)}</td>
+          <td>${escapeHtml(item.city || "-")}</td>
+          <td>${escapeHtml(item.region)}${item.province ? ` · ${escapeHtml(item.province)}` : ""}</td>
+          <td>${item.qsRank ? `#${escapeHtml(item.qsRank)}` : "-"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function batchPreviewTableHtml(rows) {
+      return `
+        <div class="preview-table">
+          <table>
+            <thead>
+              <tr>
+                <th>输入学校</th>
+                <th>标签</th>
+                <th>城市</th>
+                <th>地区</th>
+                <th>QS 2027</th>
+              </tr>
+            </thead>
+            <tbody>${batchRowsHtml(rows)}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderBatchResults(rows, sourceLabel = "批量处理") {
+      batchRows = rows;
+      if (!rows.length) {
+        $("batchStatus").textContent = "没有读取到学校名称。";
+        return;
+      }
+      $("databaseRows").innerHTML = batchRowsHtml(rows);
+      $("batchStatus").innerHTML = `已查询 ${rows.length} 所学校，结果已更新到批量处理下方表格。${batchSummaryHtml(rows)}`;
+    }
+
+    function getRecentSearches() {
+      try {
+        const items = JSON.parse(localStorage.getItem("universityTagRecentSearches") || "[]");
+        return Array.isArray(items) ? items.filter(Boolean).slice(0, 5) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRecentSearch(value) {
+      const text = String(value || "").trim();
+      if (!text) return;
+      const normalized = normalize(text);
+      const existing = getRecentSearches().filter(item => normalize(item) !== normalized);
+      const next = [text, ...existing].slice(0, 5);
+      try {
+        localStorage.setItem("universityTagRecentSearches", JSON.stringify(next));
+        renderRecentSearches();
+      } catch {}
+    }
+
+    function renderRecentSearches() {
+      const recent = getRecentSearches();
+      $("schoolList").innerHTML = recent.map(item => `<option value="${escapeHtml(item)}"></option>`).join("");
+      $("examples").innerHTML = recent.map(item => `<button class="example" type="button">${escapeHtml(item)}</button>`).join("");
+      document.querySelectorAll("#examples .example").forEach(btn => {
+        btn.addEventListener("click", () => {
+          $("query").value = btn.textContent;
+          searchNow(true);
+        });
+      });
+    }
+
+    function searchNow(remember = true) {
+      const query = $("query").value;
+      if (remember && String(query || "").trim()) saveRecentSearch(query);
+      renderResult(findSchool(query));
+    }
+
+    function clearSearch() {
+      $("query").value = "";
+      renderResult(null);
+      $("query").focus();
+    }
+
+    function renderStats() {
+      const statData = [
+        ["985", DATA.filter(s => s.tags.includes("985")).length],
+        ["211", DATA.filter(s => s.tags.includes("211")).length],
+        ["C9", DATA.filter(s => s.tags.includes("C9")).length],
+        ["QS100", DATA.filter(s => s.tags.includes("QS100")).length]
+      ];
+      $("stats").innerHTML = statData.map(([label, count]) => `<div class="stat"><strong>${count}</strong><span>${label} 条目</span></div>`).join("");
+
+      const filters = ["all", "C9", "985", "211", "top23", "QS100", "非92"];
+      $("quickFilters").innerHTML = filters.map(filter => `<button class="filter ${filter === activeQuickFilter ? "active" : ""}" data-filter="${filter}">${filter === "all" ? "全部" : filter}</button>`).join("");
+      document.querySelectorAll("#quickFilters .filter").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeQuickFilter = btn.dataset.filter;
+          $("tableFilter").value = activeQuickFilter;
+          renderStats();
+          renderDatabase();
+        });
+      });
+    }
+
+    function renderDatabase() {
+      const text = normalize($("tableSearch").value);
+      const tag = $("tableFilter").value;
+      const rows = DATA.filter(item => {
+        const tagOk = tag === "all" || item.tags.includes(tag);
+        const textOk = !text || item.searchKeys.some(k => k.includes(text));
+        return tagOk && textOk;
+      });
+      $("databaseRows").innerHTML = rows.map(item => `
+        <tr>
+          <td><strong>${escapeHtml(item.name)}</strong><br><span class="school-sub">${escapeHtml(item.en || "")}</span></td>
+          <td>${tagsHtml(item.tags, true)}</td>
+          <td>${escapeHtml(item.city || "-")}</td>
+          <td>${escapeHtml(item.region)}${item.province ? ` · ${escapeHtml(item.province)}` : ""}</td>
+          <td>${item.qsRank ? `#${escapeHtml(item.qsRank)}` : "-"}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="5" class="empty">没有匹配结果</td></tr>`;
+    }
+
+    function processBatch() {
+      const names = extractNamesFromText($("batchInput").value);
+      renderBatchResults(names.map(name => findSchool(name)), "批量处理结果");
+    }
+
+    function exportTag(tags) {
+      if (tags.includes("985")) return "985";
+      if (tags.includes("211")) return "211";
+      if (tags.includes("QS100")) return "QS100";
+      return "非92";
+    }
+
+    function exportRows(rows) {
+      return [
+        ["输入学校", "匹配学校", "英文名", "标签", "城市", "省份", "地区", "QS2027"],
+        ...rows.map(item => [
+          item.matched || item.name,
+          item.name,
+          item.en || "",
+          exportTag(item.tags),
+          item.city || "",
+          item.province || "",
+          item.region || "",
+          item.qsRank || ""
+        ])
+      ];
+    }
+
+    function escapeXml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function columnName(index) {
+      let name = "";
+      let n = index + 1;
+      while (n > 0) {
+        const rem = (n - 1) % 26;
+        name = String.fromCharCode(65 + rem) + name;
+        n = Math.floor((n - 1) / 26);
+      }
+      return name;
+    }
+
+    function crc32(bytes) {
+      const table = crc32.table || (crc32.table = (() => {
+        const out = [];
+        for (let i = 0; i < 256; i++) {
+          let c = i;
+          for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+          out[i] = c >>> 0;
+        }
+        return out;
+      })());
+      let crc = 0xffffffff;
+      for (let i = 0; i < bytes.length; i++) crc = table[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function u16(value) {
+      return [value & 255, (value >>> 8) & 255];
+    }
+
+    function u32(value) {
+      return [value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255];
+    }
+
+    function concatBytes(parts) {
+      const total = parts.reduce((sum, part) => sum + part.length, 0);
+      const out = new Uint8Array(total);
+      let offset = 0;
+      parts.forEach(part => {
+        out.set(part, offset);
+        offset += part.length;
+      });
+      return out;
+    }
+
+    function createZip(files) {
+      const encoder = new TextEncoder();
+      const locals = [];
+      const centrals = [];
+      let offset = 0;
+      files.forEach(file => {
+        const nameBytes = encoder.encode(file.name);
+        const dataBytes = typeof file.data === "string" ? encoder.encode(file.data) : file.data;
+        const crc = crc32(dataBytes);
+        const local = new Uint8Array([
+          ...u32(0x04034b50), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+          ...u32(crc), ...u32(dataBytes.length), ...u32(dataBytes.length),
+          ...u16(nameBytes.length), ...u16(0)
+        ]);
+        locals.push(local, nameBytes, dataBytes);
+        const central = new Uint8Array([
+          ...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+          ...u32(crc), ...u32(dataBytes.length), ...u32(dataBytes.length),
+          ...u16(nameBytes.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset)
+        ]);
+        centrals.push(central, nameBytes);
+        offset += local.length + nameBytes.length + dataBytes.length;
+      });
+      const centralBytes = concatBytes(centrals);
+      const end = new Uint8Array([
+        ...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length),
+        ...u32(centralBytes.length), ...u32(offset), ...u16(0)
+      ]);
+      return concatBytes([...locals, centralBytes, end]);
+    }
+
+    function createXlsxBlob(rows) {
+      const sheetRows = rows.map((row, rIndex) => {
+        const cells = row.map((cell, cIndex) => {
+          const ref = `${columnName(cIndex)}${rIndex + 1}`;
+          return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(cell)}</t></is></c>`;
+        }).join("");
+        return `<row r="${rIndex + 1}">${cells}</row>`;
+      }).join("");
+      const files = [
+        { name: "[Content_Types].xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>` },
+        { name: "_rels/.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+        { name: "xl/workbook.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="高校标签" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+        { name: "xl/_rels/workbook.xml.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+        { name: "xl/styles.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts><fills count="1"><fill><patternFill patternType="none"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="1"><xf/></cellXfs></styleSheet>` },
+        { name: "xl/worksheets/sheet1.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>` }
+      ];
+      return new Blob([createZip(files)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    }
+
+    function downloadXlsx(rows, filename) {
+      const blob = createXlsxBlob(rows);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportExcel() {
+      const rows = batchRows.length ? batchRows : DATA;
+      downloadXlsx(exportRows(rows), "高校标签查询结果.xlsx");
+    }
+
+    function downloadTemplate() {
+      downloadXlsx([["院校名称", "院校标签"], ["北京大学", ""], ["Stanford", ""], ["南京航空航天大学", ""]], "高校标签查询模板.xlsx");
+    }
+
+    function dataView(bytes) {
+      return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    }
+
+    async function inflateZipEntry(entry) {
+      if (entry.method === 0) return entry.data;
+      if (entry.method !== 8 || !("DecompressionStream" in window)) {
+        throw new Error("暂不支持该 Excel 压缩格式，请使用本页面下载的 Excel模板填写后导入。");
+      }
+      const stream = new Blob([entry.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    async function readZipEntries(buffer) {
+      const bytes = new Uint8Array(buffer);
+      const view = dataView(bytes);
+      let eocd = -1;
+      for (let i = bytes.length - 22; i >= 0; i--) {
+        if (view.getUint32(i, true) === 0x06054b50) {
+          eocd = i;
+          break;
+        }
+      }
+      if (eocd < 0) throw new Error("不是有效的 Excel xlsx 文件。");
+      const count = view.getUint16(eocd + 10, true);
+      let offset = view.getUint32(eocd + 16, true);
+      const decoder = new TextDecoder();
+      const entries = {};
+      for (let i = 0; i < count; i++) {
+        if (view.getUint32(offset, true) !== 0x02014b50) break;
+        const method = view.getUint16(offset + 10, true);
+        const compressedSize = view.getUint32(offset + 20, true);
+        const nameLength = view.getUint16(offset + 28, true);
+        const extraLength = view.getUint16(offset + 30, true);
+        const commentLength = view.getUint16(offset + 32, true);
+        const localOffset = view.getUint32(offset + 42, true);
+        const name = decoder.decode(bytes.slice(offset + 46, offset + 46 + nameLength));
+        const localNameLength = view.getUint16(localOffset + 26, true);
+        const localExtraLength = view.getUint16(localOffset + 28, true);
+        const dataStart = localOffset + 30 + localNameLength + localExtraLength;
+        entries[name.toLowerCase()] = { method, data: bytes.slice(dataStart, dataStart + compressedSize) };
+        offset += 46 + nameLength + extraLength + commentLength;
+      }
+      for (const key of Object.keys(entries)) entries[key].data = await inflateZipEntry(entries[key]);
+      return entries;
+    }
+
+    function parseXml(text) {
+      return new DOMParser().parseFromString(text, "application/xml");
+    }
+
+    function nodeText(node) {
+      return node ? node.textContent || "" : "";
+    }
+
+    function columnIndexFromRef(ref) {
+      const letters = String(ref || "A").match(/[A-Z]+/i)?.[0] || "A";
+      return letters.toUpperCase().split("").reduce((sum, ch) => sum * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+    }
+
+    async function parseXlsxRows(buffer) {
+      const decoder = new TextDecoder();
+      const entries = await readZipEntries(buffer);
+      const sheetEntry = entries["xl/worksheets/sheet1.xml"] || entries[Object.keys(entries).find(key => key.startsWith("xl/worksheets/sheet"))];
+      if (!sheetEntry) throw new Error("Excel 中未找到工作表。");
+      const shared = [];
+      if (entries["xl/sharedstrings.xml"]) {
+        const sharedDoc = parseXml(decoder.decode(entries["xl/sharedstrings.xml"].data));
+        Array.from(sharedDoc.getElementsByTagName("si")).forEach(si => shared.push(si.textContent || ""));
+      }
+      const sheetDoc = parseXml(decoder.decode(sheetEntry.data));
+      return Array.from(sheetDoc.getElementsByTagName("row")).map(row => {
+        const cells = [];
+        Array.from(row.getElementsByTagName("c")).forEach(cell => {
+          const index = columnIndexFromRef(cell.getAttribute("r"));
+          const type = cell.getAttribute("t");
+          let value = "";
+          if (type === "s") value = shared[Number(nodeText(cell.getElementsByTagName("v")[0]))] || "";
+          else if (type === "inlineStr") value = nodeText(cell.getElementsByTagName("is")[0]);
+          else value = nodeText(cell.getElementsByTagName("v")[0]) || cell.textContent || "";
+          cells[index] = value.trim();
+        });
+        return cells;
+      }).filter(row => row.some(Boolean));
+    }
+
+    function parseExcelTextRows(text) {
+      const trimmed = String(text || "").trim();
+      const htmlDoc = new DOMParser().parseFromString(trimmed, "text/html");
+      const tableRows = Array.from(htmlDoc.querySelectorAll("tr")).map(tr => Array.from(tr.children).map(cell => cell.textContent.trim())).filter(row => row.some(Boolean));
+      if (tableRows.length) return tableRows;
+      const xmlDoc = parseXml(trimmed);
+      const xmlRows = Array.from(xmlDoc.getElementsByTagName("Row")).map(row => Array.from(row.getElementsByTagName("Cell")).map(cell => cell.textContent.trim())).filter(row => row.some(Boolean));
+      if (xmlRows.length) return xmlRows;
+      const delimiter = detectDelimiter(trimmed);
+      return delimiter === "\n" ? trimmed.split(/\r?\n/).map(line => [line.trim()]).filter(row => row[0]) : parseDelimited(trimmed, delimiter);
+    }
+
+    async function importTableFile(file) {
+      if (!file) return;
+      const ext = file.name.split(".").pop().toLowerCase();
+      $("batchStatus").textContent = `正在导入：${file.name}`;
+      try {
+        let rows;
+        if (ext === "xlsx") rows = await parseXlsxRows(await file.arrayBuffer());
+        else rows = parseExcelTextRows(await file.text());
+        const names = extractNamesFromRows(rows);
+        $("batchInput").value = names.join("\n");
+        renderBatchResults(names.map(name => findSchool(name)), `导入表格：${file.name}`);
+      } catch (error) {
+        $("batchStatus").textContent = error.message || "Excel 文件读取失败，请使用 Excel模板填写后重试。";
+      }
+    }
+
+    function init() {
+      renderRecentSearches();
+      $("searchBtn").addEventListener("click", () => searchNow(true));
+      $("clearSearch").addEventListener("click", clearSearch);
+      $("query").addEventListener("input", () => searchNow(false));
+      $("query").addEventListener("keydown", e => { if (e.key === "Enter") searchNow(true); });
+      $("tableSearch").addEventListener("input", renderDatabase);
+      $("tableFilter").addEventListener("change", () => { activeQuickFilter = $("tableFilter").value; renderStats(); renderDatabase(); });
+      $("batchBtn").addEventListener("click", processBatch);
+      $("importExcel").addEventListener("click", () => $("fileInput").click());
+      $("exportExcel").addEventListener("click", exportExcel);
+      $("excelTemplate").addEventListener("click", downloadTemplate);
+      $("fileInput").addEventListener("change", event => importTableFile(event.target.files[0]));
+      $("clearBatch").addEventListener("click", () => {
+        $("batchInput").value = "";
+        batchRows = [];
+        $("fileInput").value = "";
+        $("batchStatus").textContent = "可导入 Excel 文件，或直接复制表格内容粘贴到上方。";
+        renderDatabase();
+        renderResult(null);
+      });
+      renderResult(null);
+      renderStats();
+      renderDatabase();
+    }
+
+    init();
+  </script>
+</body>
+</html>
