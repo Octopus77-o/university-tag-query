@@ -137,7 +137,7 @@
     }
 
     main {
-      max-width: 1180px;
+      max-width: 1040px;
       width: 100%;
       margin: -38px auto 0;
       padding: 0 22px 44px;
@@ -147,7 +147,7 @@
 
     .workspace {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) 360px;
+      grid-template-columns: 1fr;
       gap: 18px;
       align-items: start;
     }
@@ -335,8 +335,38 @@
       flex-wrap: wrap;
     }
 
-    .side-panel {
-      padding-bottom: 14px;
+    .tools-panel {
+      overflow: hidden;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      background: #f7f9fa;
+    }
+
+    .tab {
+      min-height: 38px;
+      border-radius: 8px;
+      background: transparent;
+      color: #44505c;
+      padding: 0 14px;
+      font-weight: 720;
+    }
+
+    .tab.active {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
     }
 
     .stats {
@@ -388,20 +418,12 @@
       border-color: var(--ink);
     }
 
-    .note {
-      margin: 0 16px;
-      padding: 12px;
-      border-left: 4px solid var(--gold);
-      background: #fff8e6;
-      color: #5f4a17;
-      font-size: 13px;
-      line-height: 1.65;
-      border-radius: 6px;
+    .batch {
+      padding: 16px;
     }
 
-    .batch {
-      margin-top: 18px;
-      padding: 16px;
+    .batch .section-title {
+      padding: 0 0 12px;
     }
 
     textarea {
@@ -469,8 +491,21 @@
     }
 
     .table-panel {
-      margin-top: 18px;
       overflow: hidden;
+    }
+
+    .database-overview {
+      padding: 14px 16px 0;
+      background: #fff;
+    }
+
+    .database-overview .stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      padding: 0;
+    }
+
+    .database-overview .filters {
+      padding: 10px 0 14px;
     }
 
     .table-tools {
@@ -593,6 +628,17 @@
         min-width: 0;
         padding-inline: 8px;
       }
+      .database-overview {
+        padding: 12px 12px 0;
+      }
+      .database-overview .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .tab { width: 100%; }
       .batch-actions {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -607,7 +653,6 @@
       .facts, .batch-summary { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
       .filters { padding-inline: 12px; }
-      .note { margin-inline: 12px; }
       .table-wrap,
       .preview-table {
         max-width: 100%;
@@ -629,6 +674,9 @@
         grid-template-columns: 1fr;
       }
       .facts, .stats {
+        grid-template-columns: 1fr;
+      }
+      .database-overview .stats {
         grid-template-columns: 1fr;
       }
       .result, .fact, .stat, .summary-item {
@@ -665,50 +713,61 @@
             <div id="result" class="result"></div>
           </div>
 
-          <div class="panel batch">
-            <div class="section-title" style="padding:0 0 12px">
-              <h2>批量处理</h2>
-              <div class="section-actions">
-                <button id="importExcel" class="ghost">导入</button>
-                <button id="exportExcel" class="ghost">导出</button>
-                <button id="excelTemplate" class="ghost">Excel模板</button>
+          <div class="panel tools-panel">
+            <div class="tabs" role="tablist" aria-label="高校标签工具">
+              <button class="tab active" data-tab="batchTab" type="button">批量处理</button>
+              <button class="tab" data-tab="databaseTab" type="button">数据库</button>
+            </div>
+
+            <div id="batchTab" class="tab-panel batch active">
+              <div class="section-title">
+                <h2>批量处理</h2>
+                <div class="section-actions">
+                  <button id="importExcel" class="ghost">导入</button>
+                  <button id="exportExcel" class="ghost">导出</button>
+                  <button id="excelTemplate" class="ghost">Excel模板</button>
+                </div>
+              </div>
+              <textarea id="batchInput" placeholder="输入多个高校名称，或直接粘贴 Excel 表的一列或多列"></textarea>
+              <input id="fileInput" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden />
+              <div id="batchStatus" class="batch-status">可导入 Excel 文件，或直接复制表格内容粘贴到上方。</div>
+              <div class="batch-actions">
+                <button id="batchBtn" class="primary">查询</button>
+                <button id="clearBatch" class="ghost">清空</button>
               </div>
             </div>
-            <textarea id="batchInput" placeholder="输入多个高校名称，或直接粘贴 Excel 表的一列或多列"></textarea>
-            <input id="fileInput" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden />
-            <div id="batchStatus" class="batch-status">可导入 Excel 文件，或直接复制表格内容粘贴到上方。</div>
-            <div class="batch-actions">
-              <button id="batchBtn" class="primary">查询</button>
-              <button id="clearBatch" class="ghost">清空</button>
-            </div>
-          </div>
 
-          <div class="panel table-panel">
-            <div class="table-tools">
-              <input id="tableSearch" class="field" placeholder="在数据库中搜索学校、城市、英文名" />
-              <select id="tableFilter">
-                <option value="all">全部标签</option>
-                <option value="C9">C9</option>
-                <option value="985">985</option>
-                <option value="211">211</option>
-                <option value="top23">top23</option>
-                <option value="QS100">QS100</option>
-                <option value="非92">非92</option>
-              </select>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>学校</th>
-                    <th>标签</th>
-                    <th>城市</th>
-                    <th>地区</th>
-                    <th>QS 2027</th>
-                  </tr>
-                </thead>
-                <tbody id="databaseRows"></tbody>
-              </table>
+            <div id="databaseTab" class="tab-panel table-panel">
+              <div class="database-overview">
+                <div class="stats" id="stats"></div>
+                <div class="filters" id="quickFilters"></div>
+              </div>
+              <div class="table-tools">
+                <input id="tableSearch" class="field" placeholder="在数据库中搜索学校、城市、英文名" />
+                <select id="tableFilter">
+                  <option value="all">全部标签</option>
+                  <option value="C9">C9</option>
+                  <option value="985">985</option>
+                  <option value="211">211</option>
+                  <option value="top23">top23</option>
+                  <option value="QS100">QS100</option>
+                  <option value="非92">非92</option>
+                </select>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>学校</th>
+                      <th>标签</th>
+                      <th>城市</th>
+                      <th>地区</th>
+                      <th>QS 2027</th>
+                    </tr>
+                  </thead>
+                  <tbody id="databaseRows"></tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -716,15 +775,6 @@
             数据说明：985/211/C9/top23 为本地规则库；QS100 数据提取自 QS 官方静态榜单数据文件 <a href="https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3990755.txt" target="_blank" rel="noreferrer">QS World University Rankings 2027</a>，已补全 QS 2027 Rank 1-100 条目。
           </p>
         </section>
-
-        <aside class="panel side-panel">
-          <div class="section-title">
-            <h2>数据库概览</h2>
-          </div>
-          <div class="stats" id="stats"></div>
-          <div class="filters" id="quickFilters"></div>
-          <p class="note">top23 口径采用一个可配置的国内强校集合，已在脚本顶部集中定义。若你们内部已有 HR/留学/招聘口径，只需替换 <strong>TOP23_NAMES</strong> 名单。</p>
-        </aside>
       </div>
     </main>
   </div>
@@ -783,7 +833,7 @@
       ["University of Michigan-Ann Arbor", "密歇根大学安娜堡分校", "Ann Arbor", "美国", 44, ["University of Michigan","UMich","密歇根大学"]],
       ["Shanghai Jiao Tong University", "上海交通大学", "Shanghai", "中国大陆", 45, ["上交","上交大","SJTU"]],
       ["Institut Polytechnique de Paris", "巴黎综合理工学院联盟", "Palaiseau Cedex", "法国", 46, ["巴黎理工学院","IPP"]],
-      ["The Hong Kong University of Science and Technology", "香港科技大学", "Hong Kong", "中国香港", 47, ["HKUST","港科大"]],
+      ["The Hong Kong University of Science and Technology", "香港科技大学", "Hong Kong", "中国香港", 47, ["HKUST","港科大","香港科技大学广州","港科大广州","HKUST Guangzhou"]],
       ["Zhejiang University", "浙江大学", "Hangzhou", "中国大陆", 47, ["浙大","ZJU"]],
       ["Delft University of Technology", "代尔夫特理工大学", "Delft", "荷兰", 49, ["TU Delft","代尔夫特理工"]],
       ["Kyoto University", "京都大学", "Kyoto", "日本", 50, ["Kyoto","京大"]],
@@ -848,7 +898,7 @@
       ["西湖大学","Westlake University","杭州","浙江",[],null,["westlake"]],
       ["南京大学","Nanjing University","南京","江苏",["985","211","C9"],null,["南大","nju"]],
       ["中国科学技术大学","University of Science and Technology of China","合肥","安徽",["985","211","C9"],null,["中科大","ustc"]],
-      ["哈尔滨工业大学","Harbin Institute of Technology","哈尔滨","黑龙江",["985","211","C9"],null,["哈工大","hit"]],
+      ["哈尔滨工业大学","Harbin Institute of Technology","哈尔滨","黑龙江",["985","211","C9"],null,["哈工大","hit","哈尔滨工业大学深圳","哈工大深圳","哈尔滨工业大学威海","哈工大威海"]],
       ["西安交通大学","Xi'an Jiaotong University","西安","陕西",["985","211","C9"],null,["西交大","xjtu"]],
       ["中国人民大学","Renmin University of China","北京","北京",["985","211"],null,["人大","ruc"]],
       ["北京航空航天大学","Beihang University","北京","北京",["985","211"],null,["北航","buaa"]],
@@ -866,7 +916,7 @@
       ["华东师范大学","East China Normal University","上海","上海",["985","211"],null,["华师大","ecnu"]],
       ["东南大学","Southeast University","南京","江苏",["985","211"],null,["东大","seu"]],
       ["厦门大学","Xiamen University","厦门","福建",["985","211"],null,["厦大","xmu"]],
-      ["山东大学","Shandong University","济南","山东",["985","211"],null,["山大","sdu"]],
+      ["山东大学","Shandong University","济南","山东",["985","211"],null,["山大","sdu","山东大学威海","山大威海","山东大学青岛","山大青岛"]],
       ["中国海洋大学","Ocean University of China","青岛","山东",["985","211"],null,["海大","ouc"]],
       ["武汉大学","Wuhan University","武汉","湖北",["985","211"],null,["武大","whu"]],
       ["华中科技大学","Huazhong University of Science and Technology","武汉","湖北",["985","211"],null,["华科","hust"]],
@@ -967,6 +1017,16 @@
       .replace(/universityof/g, "university")
       .replace(/the/g, "");
 
+    function campusNameCandidates(value) {
+      const raw = String(value || "").trim();
+      const candidates = [raw];
+      const withoutTrailingNote = raw
+        .replace(/\s*[（(【\[][^（）()[\]【】]+[）)】\]]\s*$/g, "")
+        .trim();
+      if (withoutTrailingNote && withoutTrailingNote !== raw) candidates.push(withoutTrailingNote);
+      return [...new Set(candidates)];
+    }
+
     const labelClass = (tag) => tag === "985" ? "t985" : tag === "211" ? "t211" : tag === "非92" ? "non92" : tag.toLowerCase();
 
     function makeSchool(row, source) {
@@ -989,10 +1049,11 @@
       .filter(row => !domesticKeys.has(normalize(row[0])) && !domesticKeys.has(normalize(row[1])))
       .map(row => makeSchool([row[1], row[0], row[2], row[3], [], row[4], row[5]], "qs"));
     const EXTRA_UNIVERSITIES = [
+      ["香港科技大学", "The Hong Kong University of Science and Technology", "Hong Kong", "中国香港", [], 47, ["HKUST","港科大","香港科技大学广州","港科大广州","HKUST Guangzhou"]],
       ["杜兰大学", "Tulane University", "New Orleans", "美国", [], null, ["tulane"]]
     ];
     const extraItems = EXTRA_UNIVERSITIES.map(row => makeSchool(row, "qs"));
-    const DATA = [...domesticItems, ...qsItems, ...extraItems].sort((a, b) => {
+    const DATA = [...domesticItems, ...extraItems, ...qsItems].sort((a, b) => {
       const aRank = a.qsRank || 9999;
       const bRank = b.qsRank || 9999;
       if (aRank !== bRank) return aRank - bRank;
@@ -1019,8 +1080,8 @@
     function findSchool(input) {
       const raw = String(input || "").trim();
       if (!raw) return null;
-      const key = normalize(raw);
-      const exact = DATA.find(item => item.keys.includes(key));
+      const keys = campusNameCandidates(raw).map(normalize).filter(Boolean);
+      const exact = DATA.find(item => keys.some(key => item.keys.includes(key)));
       if (exact) return { ...exact, matched: raw };
       return {
         name: raw,
@@ -1262,6 +1323,21 @@
       $("query").value = "";
       renderResult(null);
       $("query").focus();
+    }
+
+    function activateTab(tabId) {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.tab === tabId);
+      });
+      document.querySelectorAll(".tab-panel").forEach(panel => {
+        panel.classList.toggle("active", panel.id === tabId);
+      });
+    }
+
+    function setupTabs() {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+      });
     }
 
     function renderStats() {
@@ -1569,6 +1645,7 @@
     }
 
     function init() {
+      setupTabs();
       renderRecentSearches();
       $("searchBtn").addEventListener("click", () => searchNow(true));
       $("clearSearch").addEventListener("click", clearSearch);
